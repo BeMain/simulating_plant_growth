@@ -1,4 +1,6 @@
-from src.lsystem import *
+from lsystem_renderer import LSystemRenderer
+from lsystem import *
+import yaml
 
 lsys = LSystem("F", {
     "F": "Y[++++++MF][-----NF][^^^^^OF][&&&&&PF]",
@@ -13,4 +15,10 @@ lsys = LSystem("F", {
 
 for _ in range(3):
     lsys.step()
-    print(lsys.axiom)
+
+
+with open("fagus_sylvatica.yaml", "r") as file:
+    data = yaml.safe_load(file)
+
+renderer = LSystemRenderer.from_yaml(data["rendering"]["stem"])
+print(renderer)

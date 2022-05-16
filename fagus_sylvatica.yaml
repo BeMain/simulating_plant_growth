@@ -1,0 +1,31 @@
+name: Fagus sylvatica
+name[se]: Bok
+
+classification:
+  kingdom: Plantae
+  order: Fagales
+  family: Fagaceae
+
+rendering:
+  stem:
+    type: LSystem
+    branching_angle: 45
+    phyllotactic_angle: 56
+    controls: 
+      left: "+"
+      right: "-"
+      up: "^"
+      down: "&"
+      roll_left: "<"
+      roll_right: ">"
+    
+    axiom: F
+    rules: 
+      F: "Y[++++++MF][-----NF][^^^^^OF][&&&&&PF]"
+      M: Z-M
+      N: Z+N
+      O: Z&O
+      P: Z^P
+      Y: Z-ZY+
+      Z: ZZ 
+    
