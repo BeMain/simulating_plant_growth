@@ -12,10 +12,10 @@ Phyllotactic angle: 56
 Instructions: {
     left: +
     right: -
-    up: &
-    down: ^
-    roll_left: \
-    roll_right: /
+    up: ^
+    down: &
+    roll_left: <
+    roll_right: >
 }
 Axiom: F
 Rules: {
