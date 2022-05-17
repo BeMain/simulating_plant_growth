@@ -1,3 +1,4 @@
+import pygmsh
 from rendering.lsystem.lsystem_renderer import LSystemRenderer
 import yaml
 
@@ -7,10 +8,8 @@ with open("fagus_sylvatica.yaml", "r") as file:
 
 renderer = LSystemRenderer(**data["rendering"]["stem"])
 
-for _ in range(1):
+for _ in range(3):
     renderer.lsystem.step()
 print(renderer.lsystem.axiom)
 
-segments = renderer.generate_segments()
-
-print(segments)
+renderer.generate_mesh()

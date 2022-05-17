@@ -1,5 +1,8 @@
-from copy import copy
+from copy import deepcopy
 from math import radians, cos, sin
+import pygmsh
+import numpy as np
+
 from .lsystem import LSystem
 from .segment import Segment
 
@@ -7,7 +10,7 @@ from scipy.spatial.transform import Rotation
 
 
 class RendererState:
-    def __init__(self, position: tuple[float, float, float], rotation: Rotation) -> None:
+    def __init__(self, position: np.ndarray = [0.0, 0.0, 0.0], rotation: Rotation = Rotation.from_rotvec([0, 0, 0])) -> None:
         self.position = position
         self.rotation = rotation
 
@@ -22,7 +25,7 @@ class LSystemRenderer:
         self.rotation_matrices = self.get_rotation_matrices(controls)
         self.lsystem = LSystem(axiom, rules)
 
-        self.state = RendererState((0, 0, 0), Rotation.from_rotvec([0, 0, 0]))
+        self.state = RendererState()
 
     def get_rotation_matrices(self, controls):
         angle = radians(10)
@@ -58,24 +61,47 @@ class LSystemRenderer:
 
         segment_length: int = 0
         states: list[RendererState] = []
+
         for instruction in self.lsystem.axiom:
-            if not instruction in self.controls:
+            if not instruction in self.controls:  # Increase length of next segment
                 segment_length += 1
+
             else:
-                if segment_length >= 1:
+                if segment_length >= 1:  # Create new segment
                     segments.append(
-                        Segment(segment_length, self.state.position, self.state.rotation))
-                    self.state.position += self.state.rotation.apply(
-                        [segment_length, 0, 0])
+                        Segment(segment_length, deepcopy(self.state.position), self.state.rotation))
+                    self.state.position += self.state.rotation.apply([
+                        segment_length, 0, 0])
 
                     segment_length = 0
 
-                if self.controls[instruction] == "save_state":
-                    states.append(copy(self.state))
-                elif self.controls[instruction] == "pop_state":
+                if self.controls[instruction] == "save_state":  # Save state
+                    states.append(deepcopy(self.state))
+                elif self.controls[instruction] == "pop_state":  # Pop state
                     self.state = states.pop()
-                else:
+
+                else:  # Apply rotation
                     self.state.rotation = self.rotation_matrices[instruction] * \
                         self.state.rotation
 
         return segments
+
+    def generate_mesh(self):
+        """Generate a mesh based on Segments from generate_segments()"""
+        segments = self.generate_segments()
+        with pygmsh.occ.Geometry() as geom:
+            #geom.characteristic_length_max = 0.1
+            for segment in segments:
+                cylinder = geom.add_cylinder(
+                    [0.0, 0.0, 0.0], [segment.length, 0.0, 0.0], 0.3)
+
+                # Apply rotation in three axis
+                angles = segment.rotation.as_rotvec()
+                geom.rotate(cylinder, (0, 0, 0), angles[0], (1, 0, 0))
+                geom.rotate(cylinder, (0, 0, 0), angles[1], (0, 1, 0))
+                geom.rotate(cylinder, (0, 0, 0), angles[2], (0, 0, 1))
+                # Apply translation
+                geom.translate(cylinder, segment.position)
+
+            geom.generate_mesh()
+            pygmsh.helpers.gmsh.fltk.run()
