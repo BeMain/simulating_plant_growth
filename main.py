@@ -1,18 +1,5 @@
-import pygmsh
-from lsystem_renderer import LSystemRenderer
-from lsystem import *
+from rendering.lsystem.lsystem_renderer import LSystemRenderer
 import yaml
-
-
-lsys = LSystem("F", {
-    "F": "Y[++++++MF][-----NF][^^^^^OF][&&&&&PF]",
-    "M": "Z-M",
-    "N": "Z+N",
-    "O": "Z&O",
-    "P:": "Z^P",
-    "Y": "Z-ZY+",
-    "Z": "ZZ",
-},)
 
 
 with open("fagus_sylvatica.yaml", "r") as file:

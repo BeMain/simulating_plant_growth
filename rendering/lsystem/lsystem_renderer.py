@@ -1,7 +1,7 @@
 from copy import copy
 from math import radians, cos, sin
-from lsystem import LSystem
-from segment import Segment
+from .lsystem import LSystem
+from .segment import Segment
 
 from scipy.spatial.transform import Rotation
 
