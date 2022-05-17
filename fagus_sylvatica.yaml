@@ -9,7 +9,7 @@ classification:
 rendering:
   stem:
     type: LSystem
-    branching_angle: 45
+    branching_angle: 5
     phyllotactic_angle: 56
     controls: 
       left: "+"
@@ -18,6 +18,8 @@ rendering:
       down: "&"
       roll_left: "<"
       roll_right: ">"
+      save_state: "["
+      pop_state: "]"
     
     axiom: F
     rules: 
