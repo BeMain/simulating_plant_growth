@@ -22,7 +22,7 @@ for _ in range(3):
 with open("fagus_sylvatica.yaml", "r") as file:
     data = yaml.safe_load(file)
 
-renderer = LSystemRenderer.from_yaml(data["rendering"]["stem"])
+renderer = LSystemRenderer(**data["rendering"]["stem"])
 print(renderer)
 
 

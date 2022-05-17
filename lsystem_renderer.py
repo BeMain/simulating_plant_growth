@@ -9,7 +9,3 @@ class LSystemRenderer:
         self.phyllotactic_angle = phyllotactic_angle
         self.controls = Controls(**controls)
         self.lsystem = LSystem(axiom, rules)
-
-    @classmethod
-    def from_yaml(cls, yaml: dict):
-        return cls(**yaml)
