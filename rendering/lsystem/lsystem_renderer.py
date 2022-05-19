@@ -1,18 +1,22 @@
 from copy import deepcopy
-from math import radians, cos, sin
+from math import radians
 import pygmsh
 import numpy as np
+import numpy.typing as npt
 
 from .lsystem import LSystem
 from .segment import Segment
 
-from scipy.spatial.transform import Rotation
-
 
 class RendererState:
-    def __init__(self, position: np.ndarray = [0.0, 0.0, 0.0], rotation: Rotation = Rotation.from_rotvec([0, 0, 0])) -> None:
+    def __init__(self, position: npt.NDArray = np.array([0.0, 0.0, 0.0]), rotation: npt.NDArray = np.array([0.0, 0.0, 0.0])) -> None:
         self.position = position
         self.rotation = rotation
+
+    def rotation_matrix(self) -> npt.NDArray:
+        return pygmsh.rotation_matrix((1, 0, 0), self.rotation[0]) @ \
+            pygmsh.rotation_matrix((0, 1, 0), self.rotation[1]) @ \
+            pygmsh.rotation_matrix((0, 0, 1), self.rotation[2])
 
 
 class LSystemRenderer:
@@ -27,7 +31,7 @@ class LSystemRenderer:
 
         self.state = RendererState()
 
-    def get_rotation_matrices(self, controls):
+    def get_rotation_matrices(self, controls) -> dict[str, npt.NDArray]:
         angle = radians(10)
         return {
             controls["right"]: (0, 0, -angle),
@@ -54,9 +58,9 @@ class LSystemRenderer:
             else:
                 if segment_length >= 1:  # Create new segment
                     segments.append(
-                        Segment(segment_length, deepcopy(self.state.position), self.state.rotation))
-                    self.state.position += self.state.rotation.apply([
-                        segment_length, 0, 0])
+                        Segment(segment_length, deepcopy(self.state.position), deepcopy(self.state.rotation)))
+                    self.state.position += self.state.rotation_matrix() @ \
+                        [segment_length, 0, 0]
 
                     segment_length = 0
 
@@ -66,8 +70,7 @@ class LSystemRenderer:
                     self.state = states.pop()
 
                 else:  # Apply rotation
-                    self.state.rotation = Rotation.from_rotvec(self.rotation_matrices[instruction] +
-                                                               self.state.rotation.as_rotvec())
+                    self.state.rotation += self.rotation_matrices[instruction]
 
         return segments
 
@@ -78,15 +81,13 @@ class LSystemRenderer:
             #geom.characteristic_length_max = 0.1
             for segment in segments:
                 cylinder = geom.add_cylinder(
-                    [0.0, 0.0, 0.0], [segment.length, 0.0, 0.0], 0.3)
+                    segment.position, [segment.length, 0, 0], 0.3)
 
                 # Apply rotation in three axis
-                angles = segment.rotation.as_rotvec()
-                geom.rotate(cylinder, (0, 0, 0), angles[0], (1, 0, 0))
-                geom.rotate(cylinder, (0, 0, 0), angles[1], (0, 1, 0))
-                geom.rotate(cylinder, (0, 0, 0), angles[2], (0, 0, 1))
-                # Apply translation
-                geom.translate(cylinder, segment.position)
+                angles = segment.rotation
+                geom.rotate(cylinder, segment.position, angles[0], (1, 0, 0))
+                geom.rotate(cylinder, segment.position, angles[1], (0, 1, 0))
+                geom.rotate(cylinder, segment.position, angles[2], (0, 0, 1))
 
             mesh = geom.generate_mesh()
             mesh.write("test.vtk")

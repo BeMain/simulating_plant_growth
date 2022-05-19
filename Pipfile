@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 pyyaml = "*"
 pygmsh = "*"
-scipy = "*"
 
 [dev-packages]
 autopep8 = "*"
