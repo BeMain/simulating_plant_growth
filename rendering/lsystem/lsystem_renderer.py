@@ -30,24 +30,15 @@ class LSystemRenderer:
     def get_rotation_matrices(self, controls):
         angle = radians(10)
         return {
-            controls["right"]: self._ru(-angle),
-            controls["left"]: self._ru(angle),
+            controls["right"]: (0, 0, -angle),
+            controls["left"]: (0, 0, angle),
 
-            controls["up"]: self._rl(-angle),
-            controls["down"]: self._rl(angle),
+            controls["up"]: (0, -angle, 0),
+            controls["down"]: (0, angle, 0),
 
-            controls["roll_right"]: self._rh(-angle),
-            controls["roll_left"]: self._rh(angle),
+            controls["roll_right"]: (-angle, 0, 0),
+            controls["roll_left"]: (angle, 0, 0)
         }
-
-    def _ru(self, a):
-        return Rotation.from_matrix(pygmsh.helpers.rotation_matrix((0, 0, 1), a))
-
-    def _rl(self, a):
-        return Rotation.from_matrix(pygmsh.helpers.rotation_matrix((0, 1, 0), a))
-
-    def _rh(self, a):
-        return Rotation.from_matrix(pygmsh.helpers.rotation_matrix((1, 0, 0), a))
 
     def generate_segments(self) -> list[Segment]:
         """Generates a list of Segments based on lsystem.axiom, using self.controls."""
@@ -75,8 +66,8 @@ class LSystemRenderer:
                     self.state = states.pop()
 
                 else:  # Apply rotation
-                    self.state.rotation = self.rotation_matrices[instruction] * \
-                        self.state.rotation
+                    self.state.rotation = Rotation.from_rotvec(self.rotation_matrices[instruction] +
+                                                               self.state.rotation.as_rotvec())
 
         return segments
 
