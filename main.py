@@ -10,6 +10,5 @@ renderer = LSystemRenderer(**data["rendering"]["stem"])
 
 for _ in range(3):
     renderer.lsystem.step()
-print(renderer.lsystem.axiom)
 
 renderer.generate_mesh()

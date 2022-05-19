@@ -58,7 +58,7 @@ class LSystemRenderer:
             else:
                 if segment_length >= 1:  # Create new segment
                     segments.append(
-                        Segment(segment_length, deepcopy(self.state.position), deepcopy(self.state.rotation)))
+                        deepcopy(Segment(segment_length, self.state.position, self.state.rotation)))
                     self.state.position += self.state.rotation_matrix() @ \
                         [segment_length, 0, 0]
 
@@ -80,14 +80,8 @@ class LSystemRenderer:
         with pygmsh.occ.Geometry() as geom:
             #geom.characteristic_length_max = 0.1
             for segment in segments:
-                cylinder = geom.add_cylinder(
-                    segment.position, [segment.length, 0, 0], 0.3)
-
-                # Apply rotation in three axis
-                angles = segment.rotation
-                geom.rotate(cylinder, segment.position, angles[0], (1, 0, 0))
-                geom.rotate(cylinder, segment.position, angles[1], (0, 1, 0))
-                geom.rotate(cylinder, segment.position, angles[2], (0, 0, 1))
+                cyl = geom.add_cylinder(
+                    segment.position, segment.rotation_matrix() @ [segment.length, 0, 0], 0.3)
 
             mesh = geom.generate_mesh()
             mesh.write("test.vtk")

@@ -1,5 +1,6 @@
 import numpy as np
 import numpy.typing as npt
+import pygmsh
 
 
 class Segment:
@@ -7,6 +8,11 @@ class Segment:
         self.length = length
         self.position = position
         self.rotation = rotation
+
+    def rotation_matrix(self) -> npt.NDArray:
+        return pygmsh.rotation_matrix((1, 0, 0), self.rotation[0]) @ \
+            pygmsh.rotation_matrix((0, 1, 0), self.rotation[1]) @ \
+            pygmsh.rotation_matrix((0, 0, 1), self.rotation[2])
 
     def __repr__(self):
         return f"Segment({self.position}, {self.rotation})"
