@@ -10,7 +10,7 @@ rendering:
   stem:
     type: LSystem
     branching_angle: 5
-    phyllotactic_angle: 56
+    diameter_ratio: 0.95
     controls: 
       left: "+"
       right: "-"
