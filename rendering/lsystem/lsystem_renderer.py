@@ -1,22 +1,13 @@
 from copy import deepcopy
 from math import radians
 import pygmsh
-import numpy as np
 import numpy.typing as npt
+
+from rendering.lsystem.transform import Transform
+
 
 from .lsystem import LSystem
 from .segment import Segment
-
-
-class RendererState:
-    def __init__(self, position: npt.NDArray = np.array([0.0, 0.0, 0.0]), rotation: npt.NDArray = np.array([0.0, 0.0, 0.0])) -> None:
-        self.position = position
-        self.rotation = rotation
-
-    def rotation_matrix(self) -> npt.NDArray:
-        return pygmsh.rotation_matrix((1, 0, 0), self.rotation[0]) @ \
-            pygmsh.rotation_matrix((0, 1, 0), self.rotation[1]) @ \
-            pygmsh.rotation_matrix((0, 0, 1), self.rotation[2])
 
 
 class LSystemRenderer:
@@ -29,7 +20,7 @@ class LSystemRenderer:
         self.rotation_matrices = self.get_rotation_matrices(controls)
         self.lsystem = LSystem(axiom, rules)
 
-        self.state = RendererState()
+        self.state = Transform()
 
     def get_rotation_matrices(self, controls) -> dict[str, npt.NDArray]:
         angle = radians(10)
@@ -49,7 +40,7 @@ class LSystemRenderer:
         segments = []
 
         segment_length: int = 0
-        states: list[RendererState] = []
+        states: list[Transform] = []
 
         for instruction in self.lsystem.axiom:
             if not instruction in self.controls:  # Increase length of next segment
