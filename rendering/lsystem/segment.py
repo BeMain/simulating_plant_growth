@@ -1,6 +1,5 @@
 import numpy as np
 import numpy.typing as npt
-import pygmsh
 
 from rendering.lsystem.transform import Transform
 

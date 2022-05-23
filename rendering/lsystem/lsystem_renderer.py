@@ -22,6 +22,13 @@ class LSystemRenderer:
     """Uses a LSystem to generate instructions, and then renders a mesh based on those instructions."""
 
     def __init__(self, type: str = "LSystem", branching_angle: float = None, diameter_ratio: float = None, controls: dict[str, str] = None, axiom: str = None, rules: dict[str, str] = None) -> None:
+        """
+        @param diameter_ratio: How the diameter should change from start to end of Segment, as fraction.
+        @param controls: How instructions from the LSystem should be mapped to different actions when creating Segments.
+        @param axoim: Axiom for LSystem to use.
+        @param rules: Rules for LSystem to use.
+        """
+
         self.branching_angle = branching_angle
         self.diameter_ratio = diameter_ratio
         self.controls = {value: key for key, value in controls.items()}
@@ -44,7 +51,7 @@ class LSystemRenderer:
         }
 
     def generate_segments(self) -> list[Segment]:
-        """Generates a list of Segments based on lsystem.axiom, using self.controls."""
+        """Generate a list of Segments based on lsystem.axiom, using self.controls."""
         segments = []
 
         segment_length: int = 0

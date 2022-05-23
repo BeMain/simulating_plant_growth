@@ -8,7 +8,7 @@ with open("fagus_sylvatica.yaml", "r") as file:
 
 renderer = LSystemRenderer(**data["rendering"]["stem"])
 
-for _ in range(3):
+for _ in range(4):
     renderer.lsystem.step()
 
 renderer.generate_mesh()
