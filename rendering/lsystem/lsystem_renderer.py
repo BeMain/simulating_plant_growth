@@ -12,7 +12,7 @@ from .segment import Segment
 
 
 class RenderState(Transform):
-    def __init__(self, position: npt.NDArray = np.array([0.0, 0.0, 0.0]), rotation: npt.NDArray = np.array([0.0, 0.0, 0.0]), diameter: float = 1.0) -> None:
+    def __init__(self, position: npt.NDArray = np.array([0.0, 0.0, 0.0]), rotation: npt.NDArray = np.array([0.0, 0.0, 0.0]), diameter: float = 0.5) -> None:
         super().__init__(position, rotation)
 
         self.diameter = diameter
@@ -38,7 +38,7 @@ class LSystemRenderer:
         self.state = RenderState()
 
     def get_rotation_vectors(self, controls) -> dict[str, npt.NDArray]:
-        angle = radians(10)
+        angle = radians(self.branching_angle)
         return {
             controls["right"]: (0, 0, -angle),
             controls["left"]: (0, 0, angle),

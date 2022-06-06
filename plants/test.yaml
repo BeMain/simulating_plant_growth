@@ -1,0 +1,18 @@
+rendering:
+  stem:
+    type: LSystem
+    branching_angle: 20
+    diameter_ratio: 0.98
+    controls: 
+      left: "-"
+      right: "+"
+      up: "^"
+      down: "&"
+      roll_left: "<"
+      roll_right: ">"
+      save_state: "["
+      pop_state: "]"
+    
+    axiom: F
+    rules: 
+      F: F[-&<F][<++&F]|F[-&>F][+&F]

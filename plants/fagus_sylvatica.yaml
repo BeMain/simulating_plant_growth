@@ -9,7 +9,7 @@ classification:
 rendering:
   stem:
     type: LSystem
-    branching_angle: 5
+    branching_angle: 10
     diameter_ratio: 0.95
     controls: 
       left: "+"
