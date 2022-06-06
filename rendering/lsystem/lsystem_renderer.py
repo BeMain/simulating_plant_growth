@@ -1,6 +1,6 @@
 from copy import deepcopy
 from math import radians
-import pygmsh
+import pyvista as pv
 import numpy as np
 import numpy.typing as npt
 
@@ -21,7 +21,14 @@ class RenderState(Transform):
 class LSystemRenderer:
     """Uses a LSystem to generate instructions, and then renders a mesh based on those instructions."""
 
-    def __init__(self, type: str = "LSystem", branching_angle: float = None, diameter_ratio: float = None, controls: dict[str, str] = None, axiom: str = None, rules: dict[str, str] = None) -> None:
+    def __init__(self, type: str = "LSystem",
+                 branching_angle: float = None,
+                 base_diameter: float = None,
+                 diameter_ratio: float = None,
+                 controls: dict[str, str] = None,
+                 axiom: str = None,
+                 rules: dict[str, str] = None,
+                 ) -> None:
         """
         @param diameter_ratio: How the diameter should change from start to end of Segment, as fraction.
         @param controls: How instructions from the LSystem should be mapped to different actions when creating Segments.
@@ -32,13 +39,13 @@ class LSystemRenderer:
         self.branching_angle = branching_angle
         self.diameter_ratio = diameter_ratio
         self.controls = {value: key for key, value in controls.items()}
-        self.rotation_matrices = self.get_rotation_matrices(controls)
+        self.rotation_vectors = self.get_rotation_vectors(controls)
         self.lsystem = LSystem(axiom, rules)
 
-        self.state = RenderState()
+        self.state = RenderState(diameter=base_diameter)
 
-    def get_rotation_matrices(self, controls) -> dict[str, npt.NDArray]:
-        angle = radians(10)
+    def get_rotation_vectors(self, controls) -> dict[str, npt.NDArray]:
+        angle = radians(self.branching_angle)
         return {
             controls["right"]: (0, 0, -angle),
             controls["left"]: (0, 0, angle),
@@ -72,8 +79,7 @@ class LSystemRenderer:
                                 self.state.rotation,
                                 )
                     ))
-                    self.state.position += self.state.rotation_matrix() @ \
-                        [segment_length, 0, 0]
+                    self.state.position += self.state.normal_vector * segment_length
                     self.state.diameter *= diameter_mod
 
                     segment_length = 0
@@ -84,22 +90,36 @@ class LSystemRenderer:
                     self.state = states.pop()
 
                 else:  # Apply rotation
-                    self.state.rotation += self.rotation_matrices[instruction]
+                    self.state.rotation += self.rotation_vectors[instruction]
 
         return segments
 
-    def generate_mesh(self):
+    def generate_mesh(self, resolution=10):
         """Generate a mesh based on Segments from generate_segments()"""
         segments = self.generate_segments()
-        with pygmsh.occ.Geometry() as geom:
-            #geom.characteristic_length_max = 0.1
-            for segment in segments:
-                cyl = geom.add_cone(
-                    segment.position,
-                    segment.rotation_matrix() @ [segment.length, 0, 0],
-                    segment.top_d,
-                    segment.bottom_d)
 
-            mesh = geom.generate_mesh()
-            mesh.write("test.vtk")
-            pygmsh.helpers.gmsh.fltk.run()
+        p = pv.Plotter()
+        for segment in segments:
+            # Calculate length to get correct bottom_d
+            cone_l = segment.top_d * segment.length / \
+                (segment.top_d - segment.bottom_d)
+            # Create cone mesh
+            cone = pv.Cone(
+                segment.position +
+                segment.normal_vector * cone_l / 2,
+                segment.normal_vector,
+                cone_l,
+                segment.top_d,
+                capping=False,
+                resolution=resolution)
+
+            # Clip cone to correct length
+            res = cone.clip(
+                segment.normal_vector,
+                segment.position +
+                segment.normal_vector * segment.length,
+            )
+
+            p.add_mesh(res)
+
+        p.show()
