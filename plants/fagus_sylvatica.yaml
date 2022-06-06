@@ -10,6 +10,7 @@ rendering:
   stem:
     type: LSystem
     branching_angle: 10
+    base_diameter: 1.0
     diameter_ratio: 0.95
     controls: 
       left: "+"

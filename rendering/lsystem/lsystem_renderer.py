@@ -21,7 +21,14 @@ class RenderState(Transform):
 class LSystemRenderer:
     """Uses a LSystem to generate instructions, and then renders a mesh based on those instructions."""
 
-    def __init__(self, type: str = "LSystem", branching_angle: float = None, diameter_ratio: float = None, controls: dict[str, str] = None, axiom: str = None, rules: dict[str, str] = None) -> None:
+    def __init__(self, type: str = "LSystem",
+                 branching_angle: float = None,
+                 base_diameter: float = None,
+                 diameter_ratio: float = None,
+                 controls: dict[str, str] = None,
+                 axiom: str = None,
+                 rules: dict[str, str] = None,
+                 ) -> None:
         """
         @param diameter_ratio: How the diameter should change from start to end of Segment, as fraction.
         @param controls: How instructions from the LSystem should be mapped to different actions when creating Segments.
@@ -35,7 +42,7 @@ class LSystemRenderer:
         self.rotation_vectors = self.get_rotation_vectors(controls)
         self.lsystem = LSystem(axiom, rules)
 
-        self.state = RenderState()
+        self.state = RenderState(diameter=base_diameter)
 
     def get_rotation_vectors(self, controls) -> dict[str, npt.NDArray]:
         angle = radians(self.branching_angle)
