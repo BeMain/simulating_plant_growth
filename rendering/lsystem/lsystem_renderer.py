@@ -32,12 +32,12 @@ class LSystemRenderer:
         self.branching_angle = branching_angle
         self.diameter_ratio = diameter_ratio
         self.controls = {value: key for key, value in controls.items()}
-        self.rotation_matrices = self.get_rotation_matrices(controls)
+        self.rotation_vectors = self.get_rotation_vectors(controls)
         self.lsystem = LSystem(axiom, rules)
 
         self.state = RenderState()
 
-    def get_rotation_matrices(self, controls) -> dict[str, npt.NDArray]:
+    def get_rotation_vectors(self, controls) -> dict[str, npt.NDArray]:
         angle = radians(10)
         return {
             controls["right"]: (0, 0, -angle),
@@ -72,8 +72,7 @@ class LSystemRenderer:
                                 self.state.rotation,
                                 )
                     ))
-                    self.state.position += self.state.rotation_matrix() @ \
-                        [segment_length, 0, 0]
+                    self.state.position += self.state.normal_vector * segment_length
                     self.state.diameter *= diameter_mod
 
                     segment_length = 0
@@ -84,7 +83,7 @@ class LSystemRenderer:
                     self.state = states.pop()
 
                 else:  # Apply rotation
-                    self.state.rotation += self.rotation_matrices[instruction]
+                    self.state.rotation += self.rotation_vectors[instruction]
 
         return segments
 
@@ -100,8 +99,8 @@ class LSystemRenderer:
             # Create cone mesh
             cone = pv.Cone(
                 segment.position +
-                segment.rotation_matrix() @ [cone_l / 2, 0, 0],
-                segment.rotation_matrix() @ [1, 0, 0],
+                segment.normal_vector * cone_l / 2,
+                segment.normal_vector,
                 cone_l,
                 segment.top_d,
                 capping=False,
@@ -109,9 +108,9 @@ class LSystemRenderer:
 
             # Clip cone to correct length
             res = cone.clip(
-                segment.rotation_matrix() @ [1, 0, 0],
+                segment.normal_vector,
                 segment.position +
-                segment.rotation_matrix() @ [segment.length, 0, 0]
+                segment.normal_vector * segment.length,
             )
 
             p.add_mesh(res)

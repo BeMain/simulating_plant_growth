@@ -1,4 +1,3 @@
-import pygmsh
 from rendering.lsystem.lsystem_renderer import LSystemRenderer
 import yaml
 
