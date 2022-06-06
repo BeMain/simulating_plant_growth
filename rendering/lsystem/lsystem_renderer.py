@@ -1,6 +1,6 @@
 from copy import deepcopy
 from math import radians
-import pygmsh
+import pyvista as pv
 import numpy as np
 import numpy.typing as npt
 
@@ -12,7 +12,7 @@ from .segment import Segment
 
 
 class RenderState(Transform):
-    def __init__(self, position: npt.NDArray = np.array([0.0, 0.0, 0.0]), rotation: npt.NDArray = np.array([0.0, 0.0, 0.0]), diameter: float = 0.5) -> None:
+    def __init__(self, position: npt.NDArray = np.array([0.0, 0.0, 0.0]), rotation: npt.NDArray = np.array([0.0, 0.0, 0.0]), diameter: float = 1.0) -> None:
         super().__init__(position, rotation)
 
         self.diameter = diameter
@@ -88,18 +88,32 @@ class LSystemRenderer:
 
         return segments
 
-    def generate_mesh(self):
+    def generate_mesh(self, resolution=10):
         """Generate a mesh based on Segments from generate_segments()"""
         segments = self.generate_segments()
-        with pygmsh.occ.Geometry() as geom:
-            #geom.characteristic_length_max = 0.1
-            for segment in segments:
-                cyl = geom.add_cone(
-                    segment.position,
-                    segment.rotation_matrix() @ [segment.length, 0, 0],
-                    segment.top_d,
-                    segment.bottom_d)
 
-            mesh = geom.generate_mesh()
-            mesh.write("test.vtk")
-            pygmsh.helpers.gmsh.fltk.run()
+        p = pv.Plotter()
+        for segment in segments:
+            # Calculate length to get correct bottom_d
+            cone_l = segment.top_d * segment.length / \
+                (segment.top_d - segment.bottom_d)
+            # Create cone mesh
+            cone = pv.Cone(
+                segment.position +
+                segment.rotation_matrix() @ [cone_l / 2, 0, 0],
+                segment.rotation_matrix() @ [1, 0, 0],
+                cone_l,
+                segment.top_d,
+                capping=False,
+                resolution=resolution)
+
+            # Clip cone to correct length
+            res = cone.clip(
+                segment.rotation_matrix() @ [1, 0, 0],
+                segment.position +
+                segment.rotation_matrix() @ [segment.length, 0, 0]
+            )
+
+            p.add_mesh(res)
+
+        p.show()
